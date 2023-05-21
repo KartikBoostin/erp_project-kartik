@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration Form</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Registration Form</h1>
+
+  <form id="registrationForm" onsubmit="event.preventDefault(); saveFormData();">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required><br><br>
+
+    <label for="email">Email ID:</label>
+    <input type="email" id="email" required><br><br>
+
+    <label for="phone">Phone number:</label>
+    <input type="tel" id="phone" required><br><br>
+
+    <label for="dob">DOB:</label>
+    <input type="date" id="dob" required><br><br>
+
+    <input type="submit" value="Register">
+  </form>
+
+  <h2>Registered Users</h2>
+  <table id="userTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email ID</th>
+        <th>Phone number</th>
+        <th>DOB</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    // Retrieve the stored form data from local storage
+    function getStoredFormData() {
+      const storedData = localStorage.getItem('formData');
+      return storedData ? JSON.parse(storedData) : [];
+    }
+
+    // Save the form data to local storage
+    function saveFormData() {
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      const dobInput = document.getElementById('dob');
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const dob = dobInput.value;
+
+      if (!name || !email || !phone || !dob) {
+        alert('All fields are required.');
+        return;
+      }
+
+      const formData = getStoredFormData();
+      const entry = { name, email, phone, dob };
+      const editIndex = parseInt(localStorage.getItem('editIndex'), 10);
+
+      if (editIndex !== -1) {
+        formData[editIndex] = entry;
+        localStorage.setItem('editIndex', -1);
+      } else {
+        formData.push(entry);
+      }
+
+      localStorage.setItem('formData', JSON.stringify(formData));
+
+      // Clear input fields
+      nameInput.value = '';
+      emailInput.value = '';
+      phoneInput.value = '';
+      dobInput.value = '';
+
+      // Update the table with the registered users
+      displayRegisteredUsers();
+    }
+
+    // Delete a registered user
+    function deleteRegisteredUser(index) {
+      const formData = getStoredFormData();
+      formData.splice(index, 1);
+      localStorage.setItem('formData', JSON.stringify(formData));
+
+      // Update the table with the registered users
+      displayRegisteredUsers();
+    }
+
+    // Edit a registered user
+    function editRegisteredUser(index) {
+      const formData = getStoredFormData();
+      const entry = formData[index];
+
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      const dobInput = document.getElementById('dob');
+
+      nameInput.value = entry.name;
+      emailInput.value = entry.email;
+      phoneInput.value = entry.phone;
+      dobInput.value = entry.dob;
+
+      localStorage.setItem('editIndex', index);
+    }
+
+    // Display the registered users in the table
+    function displayRegisteredUsers() {
+      const userTable = document.getElementById('userTable');
+      const formData = getStoredFormData();
+
+      // Clear existing table rows
+      const tbody = userTable.querySelector('tbody');
+      tbody.innerHTML = '';
+
+      // Add new rows with the registered users
+      formData.forEach((user, index) => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = user.name;
+        row.insertCell().textContent = user.email;
+        row.insertCell().textContent = user.phone;
+        row.insertCell().textContent = user.dob;
+
+        // Create edit button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+          editRegisteredUser(index);
+        });
+
+        // Create delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+          deleteRegisteredUser(index);
+        });
+
+        // Add action buttons to the row
+        const actionCell = row.insertCell();
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
+      });
+    }
+
+    // Display the registered users when the page loads
+    displayRegisteredUsers();
+  </script>
+</body>
+</html>
